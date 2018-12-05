@@ -294,9 +294,11 @@ public:
 	int inDegree(string vertexName) {
 		Vertex &v = getVertex(vertexName);
 		int degree = 0;
-		for(Vertex &v : vertices)
-			for(EdgeTo &e : v.edges)
+		for(Vertex &ve : vertices) {
+			for(EdgeTo &e : ve.edges) {
 				if(e.endVertex == &v) degree++;
+			}
+		}
 
 		return degree;
 	}
@@ -378,7 +380,34 @@ public:
 	//		* VertexMissingException
 	//
 	list<string> bfs(string startVertexName) {
-		return{};
+		Vertex *start = &getVertex(startVertexName);
+		queue<Vertex*> q;
+		list<string> res;
+
+		map<Vertex*, bool> visitedNodes;
+
+		for(Vertex &v : vertices) visitedNodes[&v] = false;
+		
+		visitedNodes[start] = true;
+
+		res.push_back(start->name);
+		q.push(start);
+
+		while(!q.empty()) {
+			Vertex *v = q.front();
+			q.pop();
+
+			for(EdgeTo &e : v->edges) {
+				if(!visitedNodes[e.endVertex]) {
+					visitedNodes[e.endVertex] = true;
+					res.push_back(e.endVertex->name);
+					q.push(e.endVertex);
+				}
+			}
+
+		}
+
+		return res;
 	}
 
 	// TODO 15
@@ -527,6 +556,20 @@ int main() {
 	cout << endl << "DFS(F): ";
 	visited_sequence = g.dfs("F");
 	for(string s : visited_sequence) { cout << s << " "; }
+	cout << endl;
+
+	// TODO 14 - bfs
+	cout << endl << "TODO 14" << endl;
+	list<string> visited_sequence2;
+	cout << "BFS(A): ";
+	visited_sequence2 = g.bfs("A");
+	for(string s : visited_sequence2) { cout << s << " "; }
+	cout << endl << "BFS(H): ";
+	visited_sequence2 = g.bfs("H");
+	for(string s : visited_sequence2) { cout << s << " "; }
+	cout << endl << "BFS(F): ";
+	visited_sequence2 = g.bfs("F");
+	for(string s : visited_sequence2) { cout << s << " "; }
 	cout << endl;
 
 	system("pause");

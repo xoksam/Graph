@@ -261,7 +261,12 @@ public:
 	//		* VertexMissingException
 	//
 	vector<string> neighbors(string vertexName) {
-		return{};
+		Vertex v = getVertex(vertexName);
+		vector<string> res;
+		for(EdgeTo &e : v.edges) { // Prebehnem vsetky hrany incidujuce s vrcholom 'v'
+			res.push_back(e.endVertex->name); // Do resultu pushnem nazov vrchola do ktoreho smeruje hrana s 'v'
+		}
+		return res;
 	}
 
 	// TODO 9
@@ -270,7 +275,10 @@ public:
 	// Vyhadzuje vynimky: ziadne
 	//
 	vector<string> getVertexNames() {
-		return{};
+		vector<string> res;
+		for(Vertex &v : this->vertices) 
+			res.push_back(v.name);
+		return res;
 	}
 
 
@@ -284,7 +292,13 @@ public:
 	//		* VertexMissingException
 	//
 	int inDegree(string vertexName) {
-		return -1;
+		Vertex &v = getVertex(vertexName);
+		int degree = 0;
+		for(Vertex &v : vertices)
+			for(EdgeTo &e : v.edges)
+				if(e.endVertex == &v) degree++;
+
+		return degree;
 	}
 
 	// TODO 11
@@ -297,7 +311,8 @@ public:
 	//		* VertexMissingException
 	//
 	int outDegree(string vertexName) {
-		return -1;
+		Vertex v = getVertex(vertexName);
+		return v.edges.size();
 	}
 
 	// TODO 12
@@ -310,8 +325,30 @@ public:
 	//		* VertexMissingException
 	//
 	list<string> dfs(string startVertexName) {
-		
-		return{};
+		Vertex *start = &getVertex(startVertexName);
+		stack<Vertex*> stack;
+		list<string> res;
+
+		map<Vertex*, bool> visitedNodes; // Musi to byt iba refernica na classu ... Inak to NEJDE 
+										// Preto su vsade * :D
+		for(Vertex &v : vertices) visitedNodes[&v] = false; // Na zaciatku su vsetky oznacene ako nenavstivene
+
+		stack.push(start); 
+		// Klasika z Diskretnej Matematiky :D
+		while(!stack.empty()) {
+			Vertex *v = stack.top(); // Ulozim si prvy vrchol v stacku
+			stack.pop();
+			if(!visitedNodes[v]) { // Ak som este nenavstivil 'v'
+				visitedNodes[v] = true; // Tak ho navstivim :D
+				res.push_back(v->name); // A do vlozim ho do vysledku
+
+				for(EdgeTo e : v->edges) { 
+					if(!visitedNodes[e.endVertex]) stack.push(e.endVertex);
+				}
+			}
+		}
+
+		return res;
 	}
 
 	// TODO 13
@@ -396,7 +433,7 @@ public:
 	// Vyhadzuje vynimky: ziadne
 	//
 	GraphAsAdjacencyList(initializer_list<pair<string, list<pair<string, int>>>> init_list) {
-
+		
 	}
 };
 
@@ -407,6 +444,7 @@ int main() {
 	try {
 		for(string &v : graphVertices) 
 			g.addVertex(v);
+		
 		vector<tuple<string, string, int>> graphEdges = {
 			make_tuple("A", "C", 9), make_tuple("A", "D", 10), make_tuple("A", "F", 14), make_tuple("A", "H", 1), make_tuple("A", "I", 3),
 			make_tuple("B", "A", 7), 
@@ -415,6 +453,8 @@ int main() {
 			make_tuple("G", "A", 2), make_tuple("G", "F", 4),
 			make_tuple("H", "D", 5), make_tuple("H", "G", 3),
 			make_tuple("I", "C", 1)};
+
+
 		for(auto t : graphEdges) {
 			g.addEdge(get<0>(t), get<1>(t), get<2>(t));
 		}
@@ -425,8 +465,13 @@ int main() {
 
 		g.removeEdge("X", "E");
 	*/
-		g.removeVertex("A");
+		//g.removeVertex("A");
 		cout << g.toString() << endl;
+		
+		for(auto s : g.getVertexNames()) {
+			cout << s << " ";
+		}
+
 	}
 	catch(VertexDuplicateException &ve) {
 		cout << ve.getDescription() << endl;
@@ -440,6 +485,49 @@ int main() {
 	catch(VertexMissingException &ve) {
 		cout << ve.getDescription() << endl;
 	}
+
+	// TODO 8 - neighbors
+	cout << endl << "TODO 8" << endl;
+	cout << "Neighbors of A: ";
+	vector<string> A_neighbors = g.neighbors("A");
+	for(string& n : A_neighbors) { cout << n << " "; }
+	cout << endl << "Neighbors of D: ";
+	vector<string> D_neighbors = g.neighbors("D");
+	for(string& n : D_neighbors) { cout << n << " "; }
+	//cout << endl << "Neighbors of P: ";
+	//vector<string> P_neighbors = g.neighbors("P"); // odkomentujte, co sa stane?
+	//for (string& n : P_neighbors) { cout << n << " "; }
+
+	// TODO 9 - getVertexNames
+	cout << endl << endl << "TODO 9" << endl;
+	cout << "All vertices in the graph: ";
+	vector<string> all_vertex_names = g.getVertexNames();
+	for(string& v : all_vertex_names) { cout << v << " "; }
+
+	// TODO 10 - inDegree
+	cout << endl << endl << "TODO 10" << endl;
+	cout << "In-degree:" << endl;
+	for(const string& n : all_vertex_names) { cout << n << ": " << g.inDegree(n) << endl; }
+
+	// TODO 11 - outDegree
+	cout << endl << "TODO 11" << endl;
+	cout << "Out-degree:" << endl;
+	for(const string& n : all_vertex_names) { cout << n << ": " << g.outDegree(n) << endl; }
+
+	// TODO 12 - dfs
+
+	cout << endl << "TODO 12" << endl;
+	list<string> visited_sequence;
+	cout << "DFS(A): ";
+	visited_sequence = g.dfs("A");
+	for(string s : visited_sequence) { cout << s << " "; }
+	cout << endl << "DFS(B): ";
+	visited_sequence = g.dfs("B");
+	for(string s : visited_sequence) { cout << s << " "; }
+	cout << endl << "DFS(F): ";
+	visited_sequence = g.dfs("F");
+	for(string s : visited_sequence) { cout << s << " "; }
+	cout << endl;
 
 	system("pause");
 	return 0;
